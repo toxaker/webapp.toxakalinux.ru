@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XakerNeo Home</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <!-- Подключение Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <!-- Прелоадер -->
+    <div id="preloader" class="hidden">
+        <div class="loader"></div>
+    </div>
+    
+    <!-- Шапка сайта -->
+    <header class="animated-header">
+        <div class="header-content">
+            <img src="/static/logo.png" alt="Логотип сайта" class="logo">
+            <h1>Security App</h1>
+        </div>
+    </header>
+
+    <!-- Главное меню -->
+    <nav class="animated-menu">
+        <ul class="menu">
+            <li><a href="/main">Главная</a></li>
+            <li><a href="/info">Информация</a></li>
+            <li><a href="/tools">Инструменты</a></li>
+            <li><a href="/tutorial">Туториал</a></li>
+            <li><a href="/developers">Разработчики</a></li>
+            <li><a href="/donate">Пожертвовать</a></li>
+            <li><a href="/ddosefence">В разработке</a></li>
+        </ul>
+    </nav>
+
+    <div class="content">
+        <h1 class="animated-title">Welcome! Get ready to increase your security</h1>
+        <p class="animated-text">Choose a tool you need to run!</p>
+
+        <!-- Форма взаимодействия с API -->
+        <div class="task-buttons">
+            <!-- Универсальная форма для сканирования портов и работы с IP -->
+            <section>
+                <h2>Сканирование портов и Информация об IP</h2>
+                <form id="taskForm">
+                    <label for="ipInput">Введите IP-адрес или домен:</label>
+                    <input type="text" id="ipInput" name="ip" required>
+                    <select id="taskSelect">
+                        <option value="portScan">Сканировать порты</option>
+                        <option value="ipInfo">Поиск информации по IP</option>
+                        <option value="ping">Ping</option>
+                        <option value="traceroute">Traceroute</option>
+                        <option value="geoip">GeoIP Lookup</option>
+                        <option value="dnsLookup">DNS Lookup</option>
+                        <option value="reverseDns">Reverse DNS Lookup</option>
+                    </select>
+                    <button type="submit">Выполнить</button>
+                </form>
+                <div id="taskResult"></div>
+            </section>
+        </div>
+        
+        <h4>Have fun!</h4>
+    </div>
+
+    <footer class="animated-footer">
+        <p>© 2024 XackerSecurity. Права не защищены, но последствия кражи губительны.</p>
+    </footer>
+
+    <!-- Основной скрипт -->
+    <script src="/static/js/scripts.js"></script>
+</body>
+</html>
