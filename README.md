@@ -1,4 +1,4 @@
-# Web Application, providing Kali linux security tools, Telegram intergrated
+# Web Application, providing Kali linux security tools, Telegram integrated
 Telegram Web Application v1.0
 
 # webapp.toxakalinux.ru
