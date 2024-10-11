@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mainpage of the App</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <!-- Прелоадер -->
+    <div id="preloader">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Шапка сайта -->
+    <header class="animated-header">
+        <div class="header-content">
+            <img src="/static/logo.png" alt="Логотип сайта" class="logo">
+            <h1>Tools provided by Security App</h1>
+        </div>
+    </header>
+
+    <!-- Главное меню -->
+    <nav class="animated-menu">
+        <ul class="menu">
+            <li><a href="/main">Главная</a></li>
+            <li><a href="/info">Информация</a></li>
+            <li><a href="/mainpage">Инструменты</a></li>
+            <li><a href="/tutorial">Туториал</a></li>
+            <li><a href="/developers">Разработчики</a></li>
+            <li><a href="/donate">Пожертвовать</a></li>
+	    <li><a href="/ddosefence">В разработке</a></li>
+        </ul>
+    </nav>
+
+    <div class="content">
+        <h1 class="animated-title">Welcome! Get ready to increase your security and resistance to vulnerabilities</h1>
+        <p class="animated-text">Choose a tool you need to run!</p>
+
+        <!-- Формы для взаимодействия с API -->
+        <div class="task-buttons animated-buttons">
+            <!-- Форма сканирования портов -->
+            <h2>Сканирование портов</h2>
+            <form id="portScannerForm">
+              <label for="ip">Введите IP-адрес или домен:</label>
+              <input type="text" id="ip" name="ip" required>
+              <button type="submit">Сканировать порты</button>
+            </form>
+            <div id="scanResult"></div>
+
+            <!-- Форма поиска по IP -->
+            <h2>Поиск информации по IP</h2>
+            <form id="ipLookupForm">
+              <label for="ipLookup">Введите IP-адрес:</label>
+              <input type="text" id="ipLookup" name="ip" required>
+              <button type="submit">Найти информацию</button>
+            </form>
+            <div id="ipInfo"></div>
+
+		   <div class="container">
+   			 <h2>IP Information Lookup</h2>
+  		 	 <form id="ipForm">
+        		<label for="ipInput">Enter IP address (or leave empty for your own IP):</label><br>
+        		<input type="text" id="ipInput" name="ip" placeholder="8.8.8.8"><br><br>
+        		<button type="submit">Get IP Info</button>
+    			</form>
+
+    			<!-- Секция для отображения результата -->
+    		   	<div id="ipInfoResult" style="margin-top: 20px;">
+        		<!-- Результаты будут отображаться здесь -->
+    		   	</div>
+		   </div>
+
+            <!-- Форма Ping -->
+            <h2>Ping</h2>
+            <form id="pingForm">
+              <label for="pingIp">Введите IP-адрес или домен:</label>
+              <input type="text" id="pingIp" name="ip" required>
+              <button type="submit">Ping</button>
+            </form>
+            <div id="pingResult"></div>
+
+            <!-- Форма Traceroute -->
+            <h2>Traceroute</h2>
+            <form id="tracerouteForm">
+              <label for="tracerouteIp">Введите IP-адрес или домен:</label>
+              <input type="text" id="tracerouteIp" name="ip" required>
+              <button type="submit">Traceroute</button>
+            </form>
+            <div id="tracerouteResult"></div>
+        </div>
+		
+        <!-- Форма GeoIP Lookup -->
+	<h2>GeoIP Lookup</h2>
+	<form id="geoipLookupForm">
+ 	 <label for="geoipIp">Введите IP-адрес:</label>
+ 	 <input type="text" id="geoipIp" name="ip" required>
+	  <button type="submit">Lookup GeoIP</button>
+	</form>
+	<div id="geoipInfo"></div>
+		
+	<!-- Форма DNS Lookup -->
+	<h2>DNS Lookup</h2>
+	<form id="dnsLookupForm">
+  	<label for="dnsDomain">Введите домен:</label>
+  	<input type="text" id="dnsDomain" name="domain" required>
+  	<button type="submit">Lookup DNS</button>	
+	</form>
+	<div id="dnsInfo"></div>
+
+	<!-- Форма Reverse DNS Lookup -->
+	<h2>Reverse DNS Lookup</h2>
+	<form id="reverseDnsForm">
+ 	 <label for="reverseIp">Введите IP-адрес:</label>
+  	<input type="text" id="reverseIp" name="ip" required>
+ 	 <button type="submit">Reverse Lookup</button>
+	</form>
+	<div id="reverseDnsInfo"></div>
+   </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Функции для отображения загрузки и ошибок
+    function displayError(errorMessage, elementId) {
+        document.getElementById(elementId).innerHTML = `<div class="error">${errorMessage}</div>`;
+    }
+
+    function displayLoader(elementId) {
+        document.getElementById(elementId).innerHTML = `<div class="loading">Загрузка...</div>`;
+    }
+
+    // Функция для обработки форм
+    function handleFormSubmit(formId, endpoint, resultId, renderFunction) {
+        document.getElementById(formId).addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(document.getElementById(formId));
+            const data = Object.fromEntries(formData.entries());
+
+            displayLoader(resultId);
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    displayError(`Ошибка: ${data.error}`, resultId);
+                } else {
+                    renderFunction(data, resultId);
+                }
+            })
+            .catch(error => {
+                displayError(`Error: ${error.message}`, resultId);
+            });
+        });
+    }
+
+    // Функции для рендеринга результатов
+    function renderIpInfo(data, resultId) {
+        document.getElementById(resultId).innerHTML = `
+            <h3>IP Info:</h3>
+            <p><strong>IP:</strong> ${data.ip}</p>
+            <p><strong>City:</strong> ${data.city}</p>
+            <p><strong>Region:</strong> ${data.region}</p>
+            <p><strong>Country:</strong> ${data.country}</p>
+            <p><strong>Location:</strong> ${data.loc}</p>
+            <p><strong>ISP:</strong> ${data.org}</p>
+        `;
+    }
+
+    function renderGeoipInfo(data, resultId) {
+        document.getElementById(resultId).innerHTML = `
+            Геолокация: ${data.city}, ${data.country} <br>
+            Регион: ${data.region_name}
+        `;
+    }
+
+    function renderDnsInfo(data, resultId) {
+        document.getElementById(resultId).innerHTML = `DNS-записи: ${data.dns_records}`;
+    }
+
+    function renderReverseDnsInfo(data, resultId) {
+        document.getElementById(resultId).innerHTML = `Обратный DNS: ${data.reverse_dns}`;
+    }
+
+    function renderScanResult(data, resultId) {
+        document.getElementById(resultId).innerHTML = `Открытые порты: ${data.open_ports.join(', ')}`;
+    }
+
+    function renderPingResult(data, resultId) {
+        document.getElementById(resultId).innerHTML = `<pre>${data.ping}</pre>`;
+    }
+
+    function renderTracerouteResult(data, resultId) {
+        document.getElementById(resultId).innerHTML = `<pre>${data.traceroute}</pre>`;
+    }
+
+    // Назначение обработчиков для всех форм
+    handleFormSubmit('ipForm', '/get_ip_info', 'ipInfoResult', renderIpInfo);
+    handleFormSubmit('geoipLookupForm', '/geoip_lookup', 'geoipInfo', renderGeoipInfo);
+    handleFormSubmit('dnsLookupForm', '/dns_lookup', 'dnsInfo', renderDnsInfo);
+    handleFormSubmit('reverseDnsForm', '/reverse_dns_lookup', 'reverseDnsInfo', renderReverseDnsInfo);
+    handleFormSubmit('portScannerForm', '/scan_ports', 'scanResult', renderScanResult);
+    handleFormSubmit('pingForm', '/ping', 'pingResult', renderPingResult);
+    handleFormSubmit('tracerouteForm', '/traceroute', 'tracerouteResult', renderTracerouteResult);
+    
+    // Прелоадер
+    window.onload = function() {
+        document.getElementById('preloader').style.display = 'none';
+    };
+});
+</script>
+
+
+<script>
+document.getElementById('ipForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // Предотвращает перезагрузку страницы
+
+    const ip = document.getElementById('ipInput').value;
+    const url = ip ? `/get_ip_info?ip=${ip}` : '/get_ip_info';
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const resultDiv = document.getElementById('ipInfoResult');
+            resultDiv.innerHTML = '<h3>IP Info:</h3>';
+            resultDiv.innerHTML += `<p><strong>IP:</strong> ${data.ip}</p>`;
+            resultDiv.innerHTML += `<p><strong>City:</strong> ${data.city}</p>`;
+            resultDiv.innerHTML += `<p><strong>Region:</strong> ${data.region}</p>`;
+            resultDiv.innerHTML += `<p><strong>Country:</strong> ${data.country}</p>`;
+            resultDiv.innerHTML += `<p><strong>Location:</strong> ${data.loc}</p>`;
+            resultDiv.innerHTML += `<p><strong>ISP:</strong> ${data.org}</p>`;
+        })
+        .catch(error => {
+            document.getElementById('ipInfoResult').innerHTML = `<p>Error: ${error.message}</p>`;
+        });
+});
+</script>
+
+<script>
+// GeoIP Lookup
+document.getElementById('geoipLookupForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const ip = document.getElementById('geoipIp').value;
+    displayLoader('geoipInfo');
+    
+    fetch('/geoip_lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip: ip }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayError(`Ошибка: ${data.error}`, 'geoipInfo');
+        } else {
+            document.getElementById('geoipInfo').innerHTML = `Геолокация: ${data.city}, ${data.country} <br> Регион: ${data.region_name}`;
+        }
+    });
+});
+</script>
+
+<script>
+// DNS Lookup
+document.getElementById('dnsLookupForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const domain = document.getElementById('dnsDomain').value;
+    displayLoader('dnsInfo');
+    
+    fetch('/dns_lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain: domain }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayError(`Ошибка: ${data.error}`, 'dnsInfo');
+        } else {
+            document.getElementById('dnsInfo').innerHTML = `DNS-записи: ${data.dns_records}`;
+        }
+    });
+});
+</script>
+
+<script>
+// Reverse DNS Lookup
+document.getElementById('reverseDnsForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const ip = document.getElementById('reverseIp').value;
+    displayLoader('reverseDnsInfo');
+    
+    fetch('/reverse_dns_lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip: ip }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            displayError(`Ошибка: ${data.error}`, 'reverseDnsInfo');
+        } else {
+            document.getElementById('reverseDnsInfo').innerHTML = `Обратный DNS: ${data.reverse_dns}`;
+        }
+    });
+});
+</script>
+
+<script>
+// Валидация IP-адресов
+function validateIp(ip) {
+    const ipPattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[ 0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    return ipPattern.test(ip);
+}
+</script>
+
+<script>
+// Валидация форм перед отправкой
+function validateForm(formId, ipFieldId, resultDivId) {
+    const form = document.getElementById(formId);
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const ip = document.getElementById(ipFieldId).value;
+
+        if (!validateIp(ip)) {
+            document.getElementById(resultDivId).innerHTML = "Некорректный IP-адрес!";
+            return;
+        }
+
+        // Отправка формы на сервер
+        fetch(form.action, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ip: ip }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById(resultDivId).innerHTML = `Ошибка: ${data.error}`;
+            } else {
+                document.getElementById(resultDivId).innerHTML = `Результат: ${data.result}`;
+            }
+        });
+    });
+}
+</script>
+
+<script>
+// Пример применения для формы сканирования портов
+validateForm('portScannerForm', 'ip', 'scanResult');
+</script>
+        <script>
+        window.onload = function() {
+            // Скроем прелоадер после загрузки всех ресурсов
+            document.getElementById('preloader').style.display = 'none';
+        };
+
+        function displayError(errorMessage, elementId) {
+            document.getElementById(elementId).innerHTML = `<div class="error">${errorMessage}</div>`;
+        }
+
+        function displayLoader(elementId) {
+            document.getElementById(elementId).innerHTML = `<div class="loading">Загрузка...</div>`;
+        }
+
+        // Форма сканирования портов
+        document.getElementById('portScannerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const ip = document.getElementById('ip').value;
+            displayLoader('scanResult');
+            
+            fetch('/scan_ports', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ip: ip }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    displayError(`Ошибка: ${data.error}`, 'scanResult');
+                } else {
+                    document.getElementById('scanResult').innerHTML = `Открытые порты: ${data.open_ports.join(', ')}`;
+                }
+            });
+        });
+
+      </script>
+      <script>
+        document.getElementById('portScannerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const ip = document.getElementById('ip').value;
+    
+    // Показать сообщение о загрузке
+    document.getElementById('scanResult').innerHTML = 'Ожидание ответа...';
+
+    fetch('/scan_ports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip: ip }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            document.getElementById('scanResult').innerHTML = `Ошибка: ${data.error}`;
+        } else {
+            document.getElementById('scanResult').innerHTML = `Открытые порты: ${data.open_ports.join(', ')}`;
+        }
+    });
+});
+	</script>
+	
+	<script>
+        // Форма поиска по IP
+        document.getElementById('ipLookupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const ip = document.getElementById('ipLookup').value;
+            displayLoader('ipInfo');
+            
+            fetch('/ip_lookup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ip: ip }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    displayError(`Ошибка: ${data.error}`, 'ipInfo');
+                } else {
+                    document.getElementById('ipInfo').innerHTML = `Местоположение: ${data.city}, ${data.country} <br> Организация: ${data.org}`;
+                }
+            });
+        });
+	</script>
+
+      <script>
+        // Форма Ping
+        document.getElementById('pingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const ip = document.getElementById('pingIp').value;
+            displayLoader('pingResult');
+            
+            fetch('/ping', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ip: ip }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    displayError(`Ошибка: ${data.error}`, 'pingResult');
+                } else {
+                    document.getElementById('pingResult').innerHTML = `<pre>${data.ping}</pre>`;
+                }
+            });
+        });
+      </script>
+
+      <script>
+        // Форма Traceroute
+        document.getElementById('tracerouteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const ip = document.getElementById('tracerouteIp').value;
+            displayLoader('tracerouteResult');
+            
+            fetch('/traceroute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ip: ip }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    displayError(`Ошибка: ${data.error}`, 'tracerouteResult');
+                } else {
+                    document.getElementById('tracerouteResult').innerHTML = `<pre>${data.traceroute}</pre>`;
+                }
+            });
+        });
+	</script>
+
+	<h4>Have fun!</h4>
+</body>
+
+<footer class="animated-footer">
+    <p>&copy; 2024 XackerSecurity. Права не защищены, но последствия кражи губительны.</p>
+</footer>
+</html>

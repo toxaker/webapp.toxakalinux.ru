@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mainpage of the App</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <!-- Прелоадер -->
+    <div id="preloader">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Шапка сайта -->
+    <header class="animated-header">
+        <div class="header-content">
+            <img src="/static/logo.png" alt="Логотип сайта" class="logo">
+            <h1>Tools provided by Security App</h1>
+        </div>
+    </header>
+
+    <!-- Главное меню -->
+    <nav class="animated-menu">
+        <ul class="menu">
+            <li><a href="/main">Главная</a></li>
+            <li><a href="/info">Информация</a></li>
+            <li><a href="/tools">Инструменты</a></li>
+            <li><a href="/tutorial">Туториал</a></li>
+            <li><a href="/developers">Разработчики</a></li>
+            <li><a href="/donate">Пожертвовать</a></li>
+            <li><a href="/ddosefence">В разработке</a></li>
+        </ul>
+    </nav>
+
+<div class="app-container">
+        <h1>Welcome to Telegram Web App</h1>
+        <p id="user-info">Loading user info...</p>
+        <button id="send-data-btn">Send Data to Bot</button>
+    </div>
+
+    <div class="content">
+        <h1 class="animated-title">Welcome! Get ready to increase your security and resistance to vulnerabilities</h1>
+        <p class="animated-text">Choose a tool you need to run!</p>
+
+        <!-- Формы для взаимодействия с API -->
+        <div class="task-buttons animated-buttons">
+            <!-- Форма сканирования портов -->
+            <section>
+                <h2>Сканирование портов</h2>
+                <form id="portScannerForm">
+                    <label for="ip">Введите IP-адрес или домен:</label>
+                    <input type="text" id="ip" name="ip" required>
+                    <button type="submit">Сканировать порты</button>
+                </form>
+                <div id="scanResult"></div>
+            </section>
+
+            <!-- Форма поиска по IP -->
+            <section>
+                <h2>Поиск информации по IP</h2>
+                <form id="ipLookupForm">
+                    <label for="ipLookup">Введите IP-адрес:</label>
+                    <input type="text" id="ipLookup" name="ip" required>
+                    <button type="submit">Найти информацию</button>
+                </form>
+                <div id="ipInfo"></div>
+            </section>
+
+            <!-- Дополнительная форма IP Information Lookup (можно объединить с предыдущей) -->
+            <section>
+                <h2>IP Information Lookup</h2>
+                <form id="ipForm">
+                    <label for="ipInput">Введите IP-адрес (или оставьте пустым для вашего IP):</label><br>
+                    <input type="text" id="ipInput" name="ip" placeholder="8.8.8.8"><br><br>
+                    <button type="submit">Get IP Info</button>
+                </form>
+                <div id="ipInfoResult" style="margin-top: 20px;"></div>
+            </section>
+
+            <!-- Форма Ping -->
+            <section>
+                <h2>Ping</h2>
+                <form id="pingForm">
+                    <label for="pingIp">Введите IP-адрес или домен:</label>
+                    <input type="text" id="pingIp" name="ip" required>
+                    <button type="submit">Ping</button>
+                </form>
+                <div id="pingResult"></div>
+            </section>
+
+            <!-- Форма Traceroute -->
+            <section>
+                <h2>Traceroute</h2>
+                <form id="tracerouteForm">
+                    <label for="tracerouteIp">Введите IP-адрес или домен:</label>
+                    <input type="text" id="tracerouteIp" name="ip" required>
+                    <button type="submit">Traceroute</button>
+                </form>
+                <div id="tracerouteResult"></div>
+            </section>
+
+            <!-- Форма GeoIP Lookup -->
+            <section>
+                <h2>GeoIP Lookup</h2>
+                <form id="geoipLookupForm">
+                    <label for="geoipIp">Введите IP-адрес:</label>
+                    <input type="text" id="geoipIp" name="ip" required>
+                    <button type="submit">Lookup GeoIP</button>
+                </form>
+                <div id="geoipInfo"></div>
+            </section>
+
+            <!-- Форма DNS Lookup -->
+            <section>
+                <h2>DNS Lookup</h2>
+                <form id="dnsLookupForm">
+                    <label for="dnsDomain">Введите домен:</label>
+                    <input type="text" id="dnsDomain" name="domain" required>
+                    <button type="submit">Lookup DNS</button>
+                </form>
+                <div id="dnsInfo"></div>
+            </section>
+
+            <!-- Форма Reverse DNS Lookup -->
+            <section>
+                <h2>Reverse DNS Lookup</h2>
+                <form id="reverseDnsForm">
+                    <label for="reverseIp">Введите IP-адрес:</label>
+                    <input type="text" id="reverseIp" name="ip" required>
+                    <button type="submit">Reverse Lookup</button>
+                </form>
+                <div id="reverseDnsInfo"></div>
+            </section>
+        </div>
+
+        <h4>Have fun!</h4>
+    </div>
+
+    <footer class="animated-footer">
+        <p>&copy; 2024 XackerSecurity. Права не защищены, но последствия кражи губительны.</p>
+    </footer>
+
+    <!-- Основной скрипт -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Функции для отображения загрузки и ошибок
+        function displayError(errorMessage, elementId) {
+            document.getElementById(elementId).innerHTML = `<div class="error">${errorMessage}</div>`;
+        }
+
+        function displayLoader(elementId) {
+            document.getElementById(elementId).innerHTML = `<div class="loading">Загрузка...</div>`;
+        }
+
+        // Функции для рендеринга результатов
+        function renderIpInfo(data, resultId) {
+            document.getElementById(resultId).innerHTML = `
+                <h3>IP Info:</h3>
+                <p><strong>IP:</strong> ${data.ip}</p>
+                <p><strong>City:</strong> ${data.city}</p>
+                <p><strong>Region:</strong> ${data.region}</p>
+                <p><strong>Country:</strong> ${data.country}</p>
+                <p><strong>Location:</strong> ${data.loc}</p>
+                <p><strong>ISP:</strong> ${data.org}</p>
+            `;
+        }
+
+        function renderGeoipInfo(data, resultId) {
+            document.getElementById(resultId).innerHTML = `
+                <h3>GeoIP Info:</h3>
+                <p>Геолокация: ${data.city}, ${data.country}</p>
+                <p>Регион: ${data.region_name}</p>
+            `;
+        }
+
+        function renderDnsInfo(data, resultId) {
+            const dnsRecords = data.dns_records.map(record => `<li>${record}</li>`).join('');
+            document.getElementById(resultId).innerHTML = `
+                <h3>DNS-записи:</h3>
+                <ul>${dnsRecords}</ul>
+            `;
+        }
+
+        function renderReverseDnsInfo(data, resultId) {
+            document.getElementById(resultId).innerHTML = `
+                <h3>Обратный DNS:</h3>
+                <p>${data.reverse_dns}</p>
+            `;
+        }
+
+        function renderScanResult(data, resultId) {
+            const openPorts = data.open_ports.length ? data.open_ports.join(', ') : 'Нет открытых портов.';
+            document.getElementById(resultId).innerHTML = `
+                <h3>Сканирование портов:</h3>
+                <p>Открытые порты: ${openPorts}</p>
+            `;
+        }
+
+        function renderPingResult(data, resultId) {
+            document.getElementById(resultId).innerHTML = `
+                <h3>Ping:</h3>
+                <pre>${data.ping}</pre>
+            `;
+        }
+
+        function renderTracerouteResult(data, resultId) {
+            document.getElementById(resultId).innerHTML = `
+                <h3>Traceroute:</h3>
+                <pre>${data.traceroute}</pre>
+            `;
+        }
+
+        // Универсальная функция для обработки форм
+        function handleFormSubmit(formId, endpoint, resultId, renderFunction) {
+            const form = document.getElementById(formId);
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                // Валидация IP или домена, если необходимо
+                const ip = data.ip || data.domain;
+                if (ip && !validateInput(ip)) {
+                    displayError('Некорректный IP-адрес или домен!', resultId);
+                    return;
+                }
+
+                displayLoader(resultId);
+
+                fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(responseData => {
+                    if (responseData.error) {
+                        displayError(`Ошибка: ${responseData.error}`, resultId);
+                    } else {
+                        renderFunction(responseData, resultId);
+                    }
+                })
+                .catch(error => {
+                    displayError(`Ошибка: ${error.message}`, resultId);
+                });
+            });
+        }
+
+        // Валидация IP-адресов и доменов
+        function validateInput(input) {
+            const ipPattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/;
+            const domainPattern = /^(?!-)[A-Za-z0-9-]{1,63}(?<!-)$/;
+            const parts = input.split('.');
+            if (parts.length === 4 && ipPattern.test(input)) {
+                return true;
+            }
+            // Проверка домена (простая)
+            return parts.every(part => domainPattern.test(part));
+        }
+
+        // Назначение обработчиков для всех форм
+        handleFormSubmit('portScannerForm', '/scan_ports', 'scanResult', renderScanResult);
+        handleFormSubmit('ipLookupForm', '/ip_lookup', 'ipInfo', renderIpInfo);
+        handleFormSubmit('ipForm', '/get_ip_info', 'ipInfoResult', renderIpInfo);
+        handleFormSubmit('pingForm', '/ping', 'pingResult', renderPingResult);
+        handleFormSubmit('tracerouteForm', '/traceroute', 'tracerouteResult', renderTracerouteResult);
+        handleFormSubmit('geoipLookupForm', '/geoip_lookup', 'geoipInfo', renderGeoipInfo);
+        handleFormSubmit('dnsLookupForm', '/dns_lookup', 'dnsInfo', renderDnsInfo);
+        handleFormSubmit('reverseDnsForm', '/reverse_dns_lookup', 'reverseDnsInfo', renderReverseDnsInfo);
+
+        // Прелоадер
+        window.onload = function() {
+            document.getElementById('preloader').style.display = 'none';
+        };
+    });
+    </script>
+    <div class="app-container">
+        <h1>Welcome to Telegram Web App</h1>
+        <p id="user-info">Loading user info...</p>
+        <button id="send-data-btn">Send Data to Bot</button>
+    </div>
+</body>
+</html>
