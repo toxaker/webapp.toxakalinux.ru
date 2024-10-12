@@ -16,22 +16,14 @@ import requests
 import logging
 import random
 import time
+import ipaddress
 from telegram import Bot
 
 TOKEN='BOT_TOKEN'
 token = TOKEN
 
-# Initialize Flask app
 app = Flask(__name__)
 
-# Set up rate limiting
-limiter = Limiter(
-    get_remote_address,
-    app=app,
-    default_limits=["100 per hour"]
-)
-
-# Set up logging
 logging.basicConfig(filename='app.log', level=logging.DEBUG)
 app.logger.debug('Понеслась пизда по кочкам!')
 
@@ -39,22 +31,33 @@ app.logger.debug('Понеслась пизда по кочкам!')
 def log_request_info():
     logging.info(f"Request from {request.remote_addr} to {request.url}")
 
-# Utility function to validate IP addresses and domain names
 def is_valid_ip(ip):
     ip_regex = re.compile(
-        r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"  # Validate IPv4
+        r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"
     )
     domain_regex = re.compile(
         r"^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}$"  # Validate domains
     )
     return ip_regex.match(ip) or domain_regex.match(ip)
 
+def is_valid_ip(ip):
+    try:
+        ipaddress.ip_address(ip)
+        return True
+    except ValueError:
+        return False
+
+
+
 # Home Page
 @app.route('/')
 def home():
     return render_template('home.html')
 
-# Handle data from the frontend
+@app.route('/main')
+def main ():
+    return render_templates('main.html')
+
 @app.route('/submit_data', methods=['POST'])
 def submit_data():
     data = request.json
@@ -65,6 +68,18 @@ def submit_data():
 @app.route('/tools')
 def tools():
     return render_template('tools.html')
+
+@app.route('/tools/webtools')
+def webtools():
+    return render_template('webtools.html')
+
+@app.route('/tools/scantools')
+def scantools():
+    return render_template('scantools.html')
+
+@app.route('/tools/advancedtools')
+def advancedtools():
+    return render_template('advancedtools.html')
 
 # Information Page
 @app.route('/info')
@@ -140,6 +155,19 @@ def check_ports():
             ports_info.append(f"IP: {conn.laddr.ip}, Port: {conn.laddr.port}")
     return ports_info
 
+@app.route('/scan_ports', methods=['POST'])
+def scan_ports():
+    data = request.get_json()
+    ip = data.get('ip', '')
+
+    if not is_valid_ip(ip):
+        return jsonify({'error': 'Некорректный IP-адрес'}), 400
+    
+    # Основная логика для сканирования портов
+    open_ports = run_port_scan(ip)
+    return jsonify({'open_ports': open_ports})
+
+
 # Monitor network connections
 def monitor_network():
     network_info = []
@@ -173,6 +201,39 @@ def scan_nikto():
 # Start scan
 def start_scan():
     return "Scan started"
+
+try:
+    with open(f'{attack_type}_log.txt', 'a') as log_file:
+        log_file.write(log_data + '\n')
+except Exception as e:
+    logging.error(f"Ошибка записи лога: {e}")
+
+
+
+def geoip_lookup(ip):
+    try:
+        response = requests.post('https://geoip.example.com', json={'ip': ip}, timeout=10)
+        return response.json()
+    except Timeout:
+        return {'error': 'Запрос превысил допустимое время ожидания'}
+
+@app.route('/webapphook', methods=['POST'])
+def webhook():
+    data = request.get_json()
+    if data:
+        chat_id = data['message']['chat']['id']
+        text = data['message']['text']
+        # Ответ пользователю
+        reply(chat_id, text)
+    return 'ok', 200
+
+def reply(chat_id, text):
+    url = f"https://api.telegram.org/bot{os.getenv('BOT_TOKEN')}/sendMessage"
+    payload = {
+        'chat_id': chat_id,
+        'text': f"Вы сказали: {text}"
+    }
+    requests.post(url, json=payload)
 
 if __name__ == '__main__':
     app.run(debug=True)
