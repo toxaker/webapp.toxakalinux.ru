@@ -3,9 +3,9 @@ Telegram Web Application v1.0
 
 # webapp
 
-[хуй](https://t.me/kalinux_world_bot/kalinux_worldapp)
+[WEBAPP](https://t.me/kalinux_world_bot/kalinux_worldapp)
 
-https://kalinux.world
+[WEBSITE](https://kalinux.world)
 
 
 ## Overview
